@@ -74,7 +74,7 @@ class DATA_OBJECT(object):
         return self._num_samples
 
 
-def provide_data(mnist):
+def provide_data(cifar_10):
     """
     This function provide data object with desired shape.
     The attribute of data object:
@@ -85,7 +85,7 @@ def provide_data(mnist):
         -images
         -labels
 
-    :param mnist: The downloaded MNIST dataset
+    :param cifar_10: The downloaded cifar-10 dataset
     :return: data: The data object.
                    ex: data.train.images return the images of the dataset object in the training set!
     """
@@ -95,15 +95,15 @@ def provide_data(mnist):
 
     # The ?_images(? can be train, validation or test) must have the format of [num_samples, rows, columns, depth] after extraction from data.
     # The ?_labels(? can be train, validation or test) must have the format of [num_samples,] after extraction from data.
-    train_images = mnist.train.images.reshape((-1, 28, 28, 1))
+    train_images = cifar_10.train.images.reshape((-1, 28, 28, 1))
     train_images = np.pad(train_images, ((0, 0), (2, 2), (2, 2), (0, 0)), 'constant')  # added by me
-    train_labels = mnist.train.labels
-    validation_images = mnist.validation.images.reshape((-1, 28, 28, 1))
+    train_labels = cifar_10.train.labels
+    validation_images = cifar_10.validation.images.reshape((-1, 28, 28, 1))
     validation_images = np.pad(validation_images, ((0, 0), (2, 2), (2, 2), (0, 0)), 'constant')  # added by me
-    validation_labels = mnist.validation.labels
-    test_images = mnist.test.images.reshape((-1, 28, 28, 1))
+    validation_labels = cifar_10.validation.labels
+    test_images = cifar_10.test.images.reshape((-1, 28, 28, 1))
     test_images = np.pad(test_images, ((0, 0), (2, 2), (2, 2), (0, 0)), 'constant')  # added by me
-    test_labels = mnist.test.labels
+    test_labels = cifar_10.test.labels
     # print("=" * 50)
     # print(train_images.shape)
     # print(type(train_images))
@@ -120,3 +120,13 @@ def provide_data(mnist):
     data = DataSetObject(train=train, validation=validation, test=test)
 
     return data
+
+
+if __name__ == "__main__":
+    file = "data/cifar-10-batches-py/data_batch_" + str(1)
+    part_1 = unpickle(file)
+    # data.labels
+    # data.data (10000, 3072)  3072 = 32*32*3
+    # cifar.image = part_1[data]
+    pass
+    # cifar_10 = part1
