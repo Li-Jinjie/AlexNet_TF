@@ -1,6 +1,7 @@
 import numpy as np
 import collections
 from sklearn.utils import shuffle
+import matplotlib.pyplot as plt
 
 
 class DATA_OBJECT(object):
@@ -95,18 +96,21 @@ def provide_data(cifar_10):
 
     # The ?_images(? can be train, validation or test) must have the format of [num_samples, rows, columns, depth] after extraction from data.
     # The ?_labels(? can be train, validation or test) must have the format of [num_samples,] after extraction from data.
-    train_images = cifar_10.train.images.reshape((-1, 28, 28, 1))
-    train_images = np.pad(train_images, ((0, 0), (2, 2), (2, 2), (0, 0)), 'constant')  # added by me
+    # from batch, channels, height, width to batch, height, width, channels; RGB
+    train_images = cifar_10.train.images.reshape((-1, 3, 32, 32)).transpose(0, 2, 3, 1)
     train_labels = cifar_10.train.labels
-    validation_images = cifar_10.validation.images.reshape((-1, 28, 28, 1))
-    validation_images = np.pad(validation_images, ((0, 0), (2, 2), (2, 2), (0, 0)), 'constant')  # added by me
+
+    validation_images = cifar_10.validation.images.reshape((-1, 3, 32, 32)).transpose(0, 2, 3, 1)
     validation_labels = cifar_10.validation.labels
-    test_images = cifar_10.test.images.reshape((-1, 28, 28, 1))
-    test_images = np.pad(test_images, ((0, 0), (2, 2), (2, 2), (0, 0)), 'constant')  # added by me
+
+    test_images = cifar_10.test.images.reshape((-1, 3, 32, 32)).transpose(0, 2, 3, 1)
     test_labels = cifar_10.test.labels
-    # print("=" * 50)
-    # print(train_images.shape)
-    # print(type(train_images))
+
+    # i = 0
+    # while (i < 1000):
+    #     plt.imshow(test_images[i])
+    #     plt.show()
+    #     i += 1
 
     # Create separate objects for train, validation & test.
     train = DATA_OBJECT(train_images, train_labels, num_classes=10, one_hot=True, dtype=np.float32, reshape=False)

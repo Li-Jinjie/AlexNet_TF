@@ -1,12 +1,12 @@
 import tensorboard
 import tensorflow as tf
-from tensorflow.examples.tutorials.mnist import input_data
 from tensorflow.python.framework.graph_util import convert_variables_to_constants
 from tf_network import neuralNetwork
 from data_object import provide_data
 import datetime
 import time
 import os
+from cifar_10 import Cifar_10
 
 
 def train_net(net, batch_size, epoch, train_db, val_db, summary_writer):
@@ -132,8 +132,12 @@ if __name__ == "__main__":
 
         # prepare training dataset and test dataset
         # train: 55000, test: 10000, validation: 5000
-        mnist = input_data.read_data_sets('mnist_data/')  # load minist dataset
-        data = provide_data(mnist)
+        cifar_10 = Cifar_10()
+        f_path = "data/cifar-10-batches-py/"
+        cifar_10.read_data_sets(f_path)  # load cifar-10 dataset
+
+        # mnist = input_data.read_data_sets('mnist_data/')  # load minist dataset
+        data = provide_data(cifar_10)
 
         # create input and output placeholder
         input = tf.placeholder(dtype=tf.float32,
