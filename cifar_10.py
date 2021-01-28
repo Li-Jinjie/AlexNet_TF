@@ -36,26 +36,26 @@ class Cifar_10:
             self.train.images = np.array(dict[b'data'])
             self.train.labels = np.array(dict[b'labels'])[:, np.newaxis]
 
-        with open(f_path + 'data_batch_2', 'rb') as fo:
-            dict = pickle.load(fo, encoding='bytes')
-            self.train.images = np.append(self.train.images, np.array(dict[b'data']), axis=0)
-            self.train.labels = np.append(self.train.labels, np.array(dict[b'labels'])[:, np.newaxis], axis=0)
-
-        with open(f_path + 'data_batch_3', 'rb') as fo:
-            dict = pickle.load(fo, encoding='bytes')
-            self.train.images = np.append(self.train.images, np.array(dict[b'data']), axis=0)
-            self.train.labels = np.append(self.train.labels, np.array(dict[b'labels'])[:, np.newaxis], axis=0)
-
-        with open(f_path + 'data_batch_4', 'rb') as fo:
-            dict = pickle.load(fo, encoding='bytes')
-            self.train.images = np.append(self.train.images, np.array(dict[b'data']), axis=0)
-            self.train.labels = np.append(self.train.labels, np.array(dict[b'labels'])[:, np.newaxis], axis=0)
-
-        with open(f_path + 'data_batch_5', 'rb') as fo:
-            dict = pickle.load(fo, encoding='bytes')
-            self.train.images = np.append(self.train.images, np.array(dict[b'data']), axis=0)
-            self.train.labels = np.append(self.train.labels, np.array(dict[b'labels'])[:, np.newaxis], axis=0)
-
+        # with open(f_path + 'data_batch_2', 'rb') as fo:
+        #     dict = pickle.load(fo, encoding='bytes')
+        #     self.train.images = np.append(self.train.images, np.array(dict[b'data']), axis=0)
+        #     self.train.labels = np.append(self.train.labels, np.array(dict[b'labels'])[:, np.newaxis], axis=0)
+        #
+        # with open(f_path + 'data_batch_3', 'rb') as fo:
+        #     dict = pickle.load(fo, encoding='bytes')
+        #     self.train.images = np.append(self.train.images, np.array(dict[b'data']), axis=0)
+        #     self.train.labels = np.append(self.train.labels, np.array(dict[b'labels'])[:, np.newaxis], axis=0)
+        #
+        # with open(f_path + 'data_batch_4', 'rb') as fo:
+        #     dict = pickle.load(fo, encoding='bytes')
+        #     self.train.images = np.append(self.train.images, np.array(dict[b'data']), axis=0)
+        #     self.train.labels = np.append(self.train.labels, np.array(dict[b'labels'])[:, np.newaxis], axis=0)
+        #
+        # with open(f_path + 'data_batch_5', 'rb') as fo:
+        #     dict = pickle.load(fo, encoding='bytes')
+        #     self.train.images = np.append(self.train.images, np.array(dict[b'data']), axis=0)
+        #     self.train.labels = np.append(self.train.labels, np.array(dict[b'labels'])[:, np.newaxis], axis=0)
+        #
         with open(f_path + 'test_batch', 'rb') as fo:
             dict = pickle.load(fo, encoding='bytes')
             self.test.images = np.array(dict[b'data'])

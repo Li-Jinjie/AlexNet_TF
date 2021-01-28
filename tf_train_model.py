@@ -1,6 +1,6 @@
 import tensorboard
 import tensorflow as tf
-from tensorflow.python.framework.graph_util import convert_variables_to_constants
+from tensorflow.compat.v1.graph_util import convert_variables_to_constants
 from tf_network import neuralNetwork
 from data_object import provide_data
 import datetime
@@ -23,7 +23,7 @@ def train_net(net, batch_size, epoch, train_db, val_db, summary_writer):
     '''
 
     # create session
-    sess.run(tf.global_variables_initializer())
+    sess.run(tf.compat.v1.global_variables_initializer())
     train_samples = train_db.num_samples  # get number of samples
     train_images = train_db.images  # get training images
     train_labels = train_db.labels  # get training labels, noting that it is one_hot format
@@ -68,7 +68,7 @@ def train_net(net, batch_size, epoch, train_db, val_db, summary_writer):
     output_graph_def = convert_variables_to_constants(
         sess, sess.graph_def,
         output_node_names=['output', 'loss', 'accuracy'])  # set saving node
-    with tf.gfile.FastGFile('model/model.pb', mode='wb') as f:
+    with tf.gfile.GFile('model/AlexNet_model.pb', mode='wb') as f:
         f.write(output_graph_def.SerializeToString())
 
     print("=" * 50)
@@ -128,7 +128,8 @@ if __name__ == "__main__":
         # parameter configuration
         lr = 0.001  # learning rate
         batchsz = 256  # batch size
-        epoch = 15  # training period
+        epoch = 10  # training period
+        IMAGE_SIZE = 224
 
         # prepare training dataset and test dataset
         # train: 55000, test: 10000, validation: 5000
@@ -140,10 +141,10 @@ if __name__ == "__main__":
         data = provide_data(cifar_10)
 
         # create input and output placeholder
-        input = tf.placeholder(dtype=tf.float32,
-                               shape=[None, 32, 32, 1],  # revised by me
+        input = tf.compat.v1.placeholder(dtype=tf.float32,
+                               shape=[None, IMAGE_SIZE, IMAGE_SIZE, 3],  # revised by me
                                name='input')
-        labels = tf.placeholder(dtype=tf.float32,
+        labels = tf.compat.v1.placeholder(dtype=tf.float32,
                                 shape=[None, 10],
                                 name='labels')
 
@@ -159,7 +160,7 @@ if __name__ == "__main__":
         loss_operation = tf.reduce_mean(cross_entropy, name="loss")
 
         # set up the optimizer and optimize the parameters
-        optimizer = tf.train.AdamOptimizer(learning_rate=lr)
+        optimizer = tf.compat.v1.train.AdamOptimizer(learning_rate=lr)
         training_operation = optimizer.minimize(loss_operation)
 
         # post-processing, get accuracy
@@ -170,10 +171,10 @@ if __name__ == "__main__":
                                             name="accuracy")
 
         # create summary scalar
-        tf.summary.scalar('Loss', loss_operation)
-        tf.summary.scalar('Accuracy', accuracy_operation)
-        merge_summary = tf.summary.merge_all()
-        summary_writer = tf.summary.FileWriter(log_dir, sess.graph)
+        tf.compat.v1.summary.scalar('Loss', loss_operation)
+        tf.compat.v1.summary.scalar('Accuracy', accuracy_operation)
+        merge_summary = tf.compat.v1.summary.merge_all()
+        summary_writer = tf.compat.v1.summary.FileWriter(log_dir, sess.graph)
 
         # record start training time
         start_training_time = time.time()
