@@ -21,51 +21,75 @@ class neuralNetwork:
             conv1_b = self.init_bias(6)
         '''
         # Define the parameters
-        conv1_W = self.init_weight([5, 5, 1, 6])
-        con1_b = self.init_bias(6)
+        conv1_W = self.init_weight([11, 11, 3, 96])
+        conv1_b = self.init_bias(96)
 
-        conv2_W = self.init_weight([5, 5, 6, 16])
-        con2_b = self.init_bias(16)
+        conv2_W = self.init_weight([5, 5, 96, 256])
+        conv2_b = self.init_bias(256)
 
-        fc1_W = self.init_weight([16 * 5 * 5, 120])
-        fc1_b = self.init_bias(120)
+        conv3_W = self.init_weight([3, 3, 256, 384])
+        conv3_b = self.init_bias(384)
 
-        fc2_W = self.init_weight([120, 84])
-        fc2_b = self.init_bias(84)
+        conv4_W = self.init_weight([3, 3, 384, 384])
+        conv4_b = self.init_bias(384)
 
-        fc3_W = self.init_weight([84, 10])
+        conv5_W = self.init_weight([3, 3, 384, 256])
+        conv5_b = self.init_bias(256)
+
+        fc1_W = self.init_weight([5 * 5 * 256, 4096])
+        fc1_b = self.init_bias(4096)
+
+        fc2_W = self.init_weight([4096, 4096])
+        fc2_b = self.init_bias(4096)
+
+        fc3_W = self.init_weight([4096, 10])
         fc3_b = self.init_bias(10)
 
         '''Define the architecture of the network'''
-        # Layer 1: Convolutional. Input = 32x32x1. Output = 28x28x6.
-        x = nn.conv2d(input, conv1_W, strides=[1, 1, 1, 1], padding='VALID') + con1_b
+        # N=(W-F+2P)/S+1
+        # Layer 1: Convolutional. Input = 224x224x3. Output = 54x54x96.
+        x = nn.conv2d(input, conv1_W, strides=[1, 4, 4, 1], padding=[[0, 0], [1, 1], [1, 1], [0, 0]]) + conv1_b
         x = nn.relu(x)
 
-        # Pooling. Input = 28x28x6. Output = 14x14x6.
-        x = nn.max_pool(x, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1],
+        # Pooling. Input = 54x54x96. Output = 26x26x96.
+        x = nn.max_pool2d(x, ksize=[1, 3, 3, 1], strides=[1, 2, 2, 1],
                         padding='VALID')  # [batch, height, width, channels]
 
-        # Layer 2: Convolutional. Output = 10x10x16.
-        x = nn.conv2d(x, conv2_W, strides=[1, 1, 1, 1], padding='VALID') + con2_b
+        # Layer 2: Convolutional. Input = 26x26x96. Output = 26x26x256.
+        x = nn.conv2d(x, conv2_W, strides=[1, 1, 1, 1], padding='SAME') + conv2_b
         x = nn.relu(x)
 
-        # Pooling. Input = 10x10x16. Output = 5x5x16.
-        x = nn.max_pool(x, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1],
-                        padding='VALID')  # [batch, height, width, channels]
+        # Pooling. Input = 26x26x256. Output = 12x12x256.
+        x = nn.max_pool2d(x, ksize=[1, 3, 3, 1], strides=[1, 2, 2, 1], padding='VALID')
 
-        # Layer 3: Fully Connected. Input = 400. Output = 120.
+        # Layer 3: Convolutional. Input = 12x12x256. Output = 12x12x384.
+        x = nn.conv2d(x, conv3_W, strides=[1, 1, 1, 1], padding='SAME') + conv3_b
+        x = nn.relu(x)
+
+        # Layer 4: Convolutional. Input = 12x12x384. Output = 12x12x384.
+        x = nn.conv2d(x, conv4_W, strides=[1, 1, 1, 1], padding='SAME') + conv4_b
+        x = nn.relu(x)
+
+        # Layer 5: Convolutional. Input = 12x12x384. Output = 12x12x256.
+        x = nn.conv2d(x, conv5_W, strides=[1, 1, 1, 1], padding='SAME') + conv5_b
+        x = nn.relu(x)
+
+        # Pooling. Input = 12x12x256. Output = 5x5x256.
+        x = nn.max_pool2d(x, ksize=[1, 3, 3, 1], strides=[1, 2, 2, 1], padding='VALID')
+
+        # Layer 6: Fully Connected. Input = 5x5x256=6400. Output = 4096.
         x = flatten(x)
         x = tf.matmul(x, fc1_W) + fc1_b
         x = nn.relu(x)
 
-        # Layer 4: Fully Connected. Input = 120. Output = 84.
+        # Layer 7: Fully Connected. Input = 4096. Output = 4096.
         x = tf.matmul(x, fc2_W) + fc2_b
         x = nn.relu(x)
 
-        # Layer 5: Fully Connected. Input = 84. Output = 10.
+        # # Layer 8: Fully Connected. Input = 4096. Output = 10.
         x = tf.matmul(x, fc3_W) + fc3_b
-        # x = nn.relu(x)
-        logits = x  # logits.shape = (batch_size, 10)
+
+        logits = x
 
         return logits
 
@@ -79,7 +103,7 @@ class neuralNetwork:
         '''
         Init weight parameter.
         '''
-        w = tf.truncated_normal(shape=shape, mean=0, stddev=0.1)
+        w = tf.random.truncated_normal(shape=shape, mean=0, stddev=0.1)
         return tf.Variable(w)
 
     def init_bias(self, shape):
