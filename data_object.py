@@ -1,6 +1,7 @@
 import numpy as np
 import collections
 from sklearn.utils import shuffle
+import cv2
 import matplotlib.pyplot as plt
 
 
@@ -94,16 +95,27 @@ def provide_data(cifar_10):
     ########## Get the images and labels############
     ################################################
 
+    IMAGE_SIZE = 224
+
     # The ?_images(? can be train, validation or test) must have the format of [num_samples, rows, columns, depth] after extraction from data.
     # The ?_labels(? can be train, validation or test) must have the format of [num_samples,] after extraction from data.
     # from batch, channels, height, width to batch, height, width, channels; RGB
-    train_images = cifar_10.train.images.reshape((-1, 3, 32, 32)).transpose(0, 2, 3, 1)
+    train_images_org = cifar_10.train.images.reshape((-1, 3, 32, 32)).transpose(0, 2, 3, 1)
+    train_images = np.zeros([train_images_org.shape[0], IMAGE_SIZE, IMAGE_SIZE, 3], dtype=np.uint8)
+    for i in range(train_images_org.shape[0]):
+        train_images[i] = cv2.resize(train_images_org[i].astype('uint8'), dsize=(IMAGE_SIZE, IMAGE_SIZE))
     train_labels = cifar_10.train.labels
 
-    validation_images = cifar_10.validation.images.reshape((-1, 3, 32, 32)).transpose(0, 2, 3, 1)
+    validation_images_org = cifar_10.validation.images.reshape((-1, 3, 32, 32)).transpose(0, 2, 3, 1)
+    validation_images = np.zeros([validation_images_org.shape[0], IMAGE_SIZE, IMAGE_SIZE, 3], dtype=np.uint8)
+    for i in range(validation_images_org.shape[0]):
+        validation_images[i] = cv2.resize(validation_images_org[i].astype('uint8'), dsize=(IMAGE_SIZE, IMAGE_SIZE))
     validation_labels = cifar_10.validation.labels
 
-    test_images = cifar_10.test.images.reshape((-1, 3, 32, 32)).transpose(0, 2, 3, 1)
+    test_images_org = cifar_10.test.images.reshape((-1, 3, 32, 32)).transpose(0, 2, 3, 1)
+    test_images = np.zeros([test_images_org.shape[0], IMAGE_SIZE, IMAGE_SIZE, 3], dtype=np.uint8)
+    for i in range(test_images_org.shape[0]):
+        test_images[i] = cv2.resize(test_images_org[i].astype('uint8'), dsize=(IMAGE_SIZE, IMAGE_SIZE))
     test_labels = cifar_10.test.labels
 
     # i = 0
