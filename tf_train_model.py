@@ -1,6 +1,7 @@
 import tensorboard
 import tensorflow as tf
 from tensorflow.compat.v1.graph_util import convert_variables_to_constants
+from tensorflow.python.tools import freeze_graph
 from tf_network import neuralNetwork
 from data_object import provide_data
 from data_object import preprocess
@@ -26,6 +27,7 @@ def train_net(net, batch_size, epoch, train_db, val_db, summary_writer):
 
     # create session
     sess.run(tf.compat.v1.global_variables_initializer())
+
     train_samples = train_db.num_samples  # get number of samples
     train_images = train_db.images  # get training images
     train_labels = train_db.labels  # get training labels, noting that it is one_hot format
@@ -41,10 +43,8 @@ def train_net(net, batch_size, epoch, train_db, val_db, summary_writer):
         for offset in tqdm(range(0, train_samples, batch_size)):
             # "offset" is the start position of the index, "end" is the end position of the index.
             end = offset + batch_size
-            batch_train_images, batch_train_labels = train_images[
-                                                     offset:end], train_labels[
-                                                                  offset:
-                                                                  end]  # get images and labels according to the batch number
+            batch_train_images, batch_train_labels = train_images[offset:end], train_labels[offset:end]
+            # get images and labels according to the batch number
 
             batch_train_images = preprocess(batch_train_images, IMAGE_SIZE)
 
@@ -65,17 +65,38 @@ def train_net(net, batch_size, epoch, train_db, val_db, summary_writer):
         validation_accuracy = test_net(net, batch_size, val_db)
         loss_avg = total_loss * batch_size / train_samples
         print(
-            "EPOCH {:>3d}: Loss = {:.5f}, Validation Accuracy = {:.5f}".format(
-                i + 1, loss_avg, validation_accuracy))
+            "EPOCH {:>3d}: Loss = {:.5f}, Validation Accuracy = {:.5f}".format(i + 1, loss_avg, validation_accuracy))
 
-    # save model
-    if os.path.exists('./model') == False:
-        os.makedirs('./model')
-    output_graph_def = convert_variables_to_constants(
-        sess, sess.graph_def,
-        output_node_names=['output', 'loss', 'accuracy'])  # set saving node
-    with tf.gfile.GFile('model/AlexNet_model.pb', mode='wb') as f:
-        f.write(output_graph_def.SerializeToString())
+        # save model for every 10 epochs
+        if (i != 0) and (i % 10 == 0):
+            save_path = saver.save(sess, ckpt_path)
+            print("model has saved,saved in path: %s" % save_path)
+
+    #### save model ####
+    pbtxt_name = 'frozen_model.pbtxt'
+    pbtxt_path = os.path.join(dictionary, pbtxt_name)
+    frozen_model_path = os.path.join(dictionary, 'frozen_model.pb')
+    output_node = 'full_layer_03/linear'
+
+    saver.save(sess, ckpt_path)
+
+    # This will only save the graph but the variables will not be saved.
+    # You have to freeze your model first.
+    tf.train.write_graph(graph_or_graph_def=sess.graph_def, logdir=dictionary, name=pbtxt_name, as_text=True)
+    # Freeze graph
+    freeze_graph.freeze_graph(input_graph=pbtxt_path, input_saver='',
+                              input_binary=False, input_checkpoint=ckpt_path, output_node_names=output_node,
+                              restore_op_name='save/restore_all', filename_tensor_name='save/Const:0',
+                              output_graph=frozen_model_path, clear_devices=True, initializer_nodes='')
+
+    # save the final model
+    # if os.path.exists('./model') == False:
+    #     os.makedirs('./model')
+    # output_graph_def = convert_variables_to_constants(
+    #     sess, sess.graph_def,
+    #     output_node_names=['output', 'loss', 'accuracy'])  # set saving node
+    # with tf.gfile.GFile('model/AlexNet_model.pb', mode='wb') as f:
+    #     f.write(output_graph_def.SerializeToString())
 
     print("=" * 50)
     print()
@@ -115,6 +136,15 @@ def test_net(net, batch_size, dataset):
     return total_accuracy * batch_size / num_samples
 
 
+# def load_pb(path_to_pb):
+#     with tf.io.gfile.GFile(path_to_pb, "rb") as f:
+#         graph_def = tf.compat.v1.GraphDef()
+#         graph_def.ParseFromString(f.read())
+#     with tf.Graph().as_default() as graph:
+#         tf.import_graph_def(graph_def, name='')
+#         return graph
+
+
 if __name__ == "__main__":
     # create tensorboard environment
     '''
@@ -128,7 +158,7 @@ if __name__ == "__main__":
     program_start_time = time.time()
 
     # create session
-    with tf.Session() as sess:
+    with tf.compat.v1.Session() as sess:
         # create summary environment
         current_time = datetime.datetime.now().strftime(('%Y%m%d-%H%M%S'))
         log_dir = 'logs/' + current_time
@@ -137,7 +167,7 @@ if __name__ == "__main__":
         # TODO: change learning rate to decayed learning rate
         lr = 0.001  # learning rate
         batchsz = 128  # batch size
-        epoch = 20  # training period
+        epoch = 30  # training period
         IMAGE_SIZE = 224
 
         # prepare training dataset and test dataset
@@ -146,7 +176,7 @@ if __name__ == "__main__":
         f_path = "data/cifar-10-batches-py/"
         cifar_10.read_data_sets(f_path)  # load cifar-10 dataset
 
-        # mnist = input_data.read_data_sets('mnist_data/')  # load minist dataset
+        # load cifar-10 dataset
         data = provide_data(cifar_10)
 
         # create input and output placeholder
@@ -156,7 +186,7 @@ if __name__ == "__main__":
         labels = tf.compat.v1.placeholder(dtype=tf.float32,
                                           shape=[None, 10],
                                           name='labels')
-        prob = tf.placeholder_with_default(0.0, shape=())
+        prob = tf.compat.v1.placeholder_with_default(0.0, shape=())
 
         # create instance of neural network
         net = neuralNetwork()
@@ -197,6 +227,13 @@ if __name__ == "__main__":
         tf.compat.v1.summary.scalar('Accuracy', accuracy_operation)
         merge_summary = tf.compat.v1.summary.merge_all()
         summary_writer = tf.compat.v1.summary.FileWriter(log_dir, sess.graph)
+
+        # define saver: maximum 4 latest models are saved.
+        saver = tf.compat.v1.train.Saver(max_to_keep=3)
+        dictionary = './ckpt_model'
+        ckpt_path = os.path.join(dictionary, 'ckpt_model.ckpt')
+        if os.path.exists(dictionary) == False:
+            os.makedirs(dictionary)
 
         # record start training time
         start_training_time = time.time()

@@ -149,3 +149,4 @@ archives/
 /logs
 /model
 /model_frozen
+/ckpt_model
