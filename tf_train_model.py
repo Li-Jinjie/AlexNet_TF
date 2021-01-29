@@ -47,7 +47,8 @@ def train_net(net, batch_size, epoch, train_db, val_db, summary_writer):
                 [training_operation, loss_operation, merge_summary],
                 feed_dict={
                     input: batch_train_images,
-                    labels: batch_train_labels
+                    labels: batch_train_labels,
+                    prob: 0.5
                 })
             total_loss += loss
 
@@ -99,7 +100,8 @@ def test_net(net, batch_size, dataset):
         total_accuracy += sess.run(accuracy_operation,
                                    feed_dict={
                                        input: batch_images,
-                                       labels: batch_labels
+                                       labels: batch_labels,
+                                       prob: 0.0   # the probability to discard elements
                                    })
 
     return total_accuracy * batch_size / num_samples
@@ -126,7 +128,7 @@ if __name__ == "__main__":
         log_dir = 'logs/' + current_time
 
         # parameter configuration
-        lr = 0.001  # learning rate
+        lr = 0.01  # learning rate
         batchsz = 256  # batch size
         epoch = 10  # training period
         IMAGE_SIZE = 224
@@ -147,12 +149,13 @@ if __name__ == "__main__":
         labels = tf.compat.v1.placeholder(dtype=tf.float32,
                                 shape=[None, 10],
                                 name='labels')
+        prob = tf.placeholder_with_default(0.0, shape=())
 
         # create instance of neural network
         net = neuralNetwork()
 
         # forward the network
-        logits = net.forward(input)
+        logits = net.forward(input, prob)
 
         # get loss
         cross_entropy = tf.nn.softmax_cross_entropy_with_logits(logits=logits,
