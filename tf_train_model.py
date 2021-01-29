@@ -24,9 +24,10 @@ def train_net(net, batch_size, epochs, train_db, val_db, summary_writer):
         - val_db: validation dataset
         - summary_writer: summary object
     '''
-
-    # create session
-    sess.run(tf.compat.v1.global_variables_initializer())
+    # # create session  training from scratch!
+    # sess.run(tf.compat.v1.global_variables_initializer())
+    # restore session
+    saver.restore(sess, './ckpt_model/ckpt_model_valid_acc=0.2969.ckpt')
 
     train_samples = train_db.num_samples  # get number of samples
     train_images = train_db.images  # get training images
@@ -170,7 +171,7 @@ if __name__ == "__main__":
         # TODO: change learning rate to decayed learning rate
         lr = 0.001  # learning rate
         batchsz = 128  # batch size
-        epoch = 3  # training period
+        epoch = 47  # training period
         IMAGE_SIZE = 224
 
         # prepare training dataset and test dataset

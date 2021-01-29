@@ -184,14 +184,22 @@ if __name__ == "__main__":
 
         # !!!  Restore the model  !!!
         # step 1
-        saver = tf.train.import_meta_graph('./ckpt_model/ckpt_model_valid_acc=0.2969.ckpt.meta')
+        saver = tf.compat.v1.train.import_meta_graph('./ckpt_model/ckpt_model_valid_acc=0.2969.ckpt.meta')
         saver.restore(sess, './ckpt_model/ckpt_model_valid_acc=0.2969.ckpt')
         # step 2
-        graph = tf.get_default_graph()
+        graph = tf.compat.v1.get_default_graph()
+
+        for op in graph.get_operations():
+            print(op.name)
         # input
         input = graph.get_tensor_by_name('input:0')
         labels = graph.get_tensor_by_name('labels:0')
         prob = graph.get_tensor_by_name('prob:0')
+        # output
+        loss_operation = graph.get_tensor_by_name('loss_op:0')  # check
+        merge_summary = graph.get_tensor_by_name('merge_summary/merge_summary:0')
+        accuracy_operation = graph.get_tensor_by_name('accuracy:0')
+        training_operation = graph.get_tensor_by_name('training_op:0')
 
         dictionary = './ckpt_model'
         if os.path.exists(dictionary) == False:
@@ -200,27 +208,27 @@ if __name__ == "__main__":
         # create instance of neural network
         net = neuralNetwork()
 
-        # forward the network
-        logits = net.forward(input, prob)
-
-        # get loss
-        cross_entropy = tf.nn.softmax_cross_entropy_with_logits(logits=logits,
-                                                                labels=labels)
-        loss_operation = graph.get_tensor_by_name('loss_op:0')
-
-        # set up the optimizer and optimize the parameters
-        optimizer = tf.compat.v1.train.AdamOptimizer(learning_rate=lr)
-        training_operation = optimizer.minimize(loss_operation)
-
-        # post-processing, get accuracy
-        prediction = graph.get_tensor_by_name('output:0')
-        correct_prediction = tf.equal(prediction, tf.argmax(labels, axis=1))
-        accuracy_operation = graph.get_tensor_by_name('accuracy:0')
-
-        # create summary scalar
-        tf.compat.v1.summary.scalar('Loss', loss_operation)
-        tf.compat.v1.summary.scalar('Accuracy', accuracy_operation)
-        merge_summary = tf.compat.v1.summary.merge_all()
+        # # forward the network
+        # logits = net.forward(input, prob)
+        #
+        # # get loss
+        # cross_entropy = tf.nn.softmax_cross_entropy_with_logits(logits=logits,
+        #                                                         labels=labels)
+        # loss_operation = graph.get_tensor_by_name('loss_op:0')
+        #
+        # # set up the optimizer and optimize the parameters
+        # optimizer = tf.compat.v1.train.AdamOptimizer(learning_rate=lr)
+        # training_operation = optimizer.minimize(loss_operation)
+        #
+        # # post-processing, get accuracy
+        # prediction = graph.get_tensor_by_name('output:0')
+        # correct_prediction = tf.equal(prediction, tf.argmax(labels, axis=1))
+        # accuracy_operation = graph.get_tensor_by_name('accuracy:0')
+        #
+        # # create summary scalar
+        # tf.compat.v1.summary.scalar('Loss', loss_operation)
+        # tf.compat.v1.summary.scalar('Accuracy', accuracy_operation)
+        # merge_summary = tf.compat.v1.summary.merge_all()
         summary_writer = tf.compat.v1.summary.FileWriter(log_dir, sess.graph)
 
         # record start training time
