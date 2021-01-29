@@ -71,7 +71,7 @@ def train_net(net, batch_size, epochs, train_db, val_db, summary_writer):
         # save model for every 10 epochs
         if ((epoch + 1) != 0) and ((epoch + 1) % 10 == 0):
             ckpt_path = os.path.join(dictionary, 'ckpt_model_valid_acc=%.4f.ckpt' % validation_accuracy)
-            save_path = saver.save(sess, ckpt_path, global_step=epoch, write_meta_graph=False)
+            save_path = saver.save(sess, ckpt_path)  # add global_step=epoch to add 1 in the end of file name
             print("model has saved,saved in path: %s" % save_path)
 
     #### save model ####
@@ -81,7 +81,7 @@ def train_net(net, batch_size, epochs, train_db, val_db, summary_writer):
     output_node = 'full_layer_03/linear'
 
     ckpt_path = os.path.join(dictionary, 'ckpt_model_valid_acc=%.4f.ckpt' % validation_accuracy)
-    save_path = saver.save(sess, ckpt_path, global_step=epoch, write_meta_graph=False)
+    save_path = saver.save(sess, ckpt_path)
 
     # This will only save the graph but the variables will not be saved.
     # You have to freeze your model first.
@@ -170,7 +170,7 @@ if __name__ == "__main__":
         # TODO: change learning rate to decayed learning rate
         lr = 0.001  # learning rate
         batchsz = 128  # batch size
-        epoch = 30  # training period
+        epoch = 3  # training period
         IMAGE_SIZE = 224
 
         # prepare training dataset and test dataset
@@ -189,7 +189,7 @@ if __name__ == "__main__":
         labels = tf.compat.v1.placeholder(dtype=tf.float32,
                                           shape=[None, 10],
                                           name='labels')
-        prob = tf.compat.v1.placeholder_with_default(0.0, shape=())
+        prob = tf.compat.v1.placeholder_with_default(0.0, shape=(), name='prob')
 
         # create instance of neural network
         net = neuralNetwork()
@@ -200,7 +200,7 @@ if __name__ == "__main__":
         # get loss
         cross_entropy = tf.nn.softmax_cross_entropy_with_logits(logits=logits,
                                                                 labels=labels)
-        loss_operation = tf.reduce_mean(cross_entropy, name="loss")
+        loss_operation = tf.reduce_mean(cross_entropy, name='loss_op')
 
         # decayed learning rate
         # global_step = tf.Variable(0, trainable=False)
@@ -216,19 +216,19 @@ if __name__ == "__main__":
 
         # set up the optimizer and optimize the parameters
         optimizer = tf.compat.v1.train.AdamOptimizer(learning_rate=lr)
-        training_operation = optimizer.minimize(loss_operation)
+        training_operation = optimizer.minimize(loss_operation, name='training_op')
 
         # post-processing, get accuracy
         prediction = tf.argmax(logits, axis=1, name='output')
         correct_prediction = tf.equal(prediction, tf.argmax(labels, axis=1))
         accuracy_operation = tf.reduce_mean(tf.cast(correct_prediction,
                                                     tf.float32),
-                                            name="accuracy")
+                                            name='accuracy')
 
         # create summary scalar
         tf.compat.v1.summary.scalar('Loss', loss_operation)
         tf.compat.v1.summary.scalar('Accuracy', accuracy_operation)
-        merge_summary = tf.compat.v1.summary.merge_all()
+        merge_summary = tf.compat.v1.summary.merge_all(name='merge_summary')
         summary_writer = tf.compat.v1.summary.FileWriter(log_dir, sess.graph)
 
         # define saver: maximum 4 latest models are saved.
