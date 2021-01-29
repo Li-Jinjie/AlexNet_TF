@@ -232,7 +232,9 @@ if __name__ == "__main__":
         summary_writer = tf.compat.v1.summary.FileWriter(log_dir, sess.graph)
 
         # define saver: maximum 4 latest models are saved.
-        saver = tf.compat.v1.train.Saver(max_to_keep=3)
+        new_saver = tf.train.import_meta_graph('ckpt_model/ckpt_model.ckpt.meta')
+        new_saver.restore(sess, 'ckpt_model/ckpt_model.ckpt')
+
         dictionary = './ckpt_model'
         if os.path.exists(dictionary) == False:
             os.makedirs(dictionary)
