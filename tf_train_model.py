@@ -136,7 +136,7 @@ if __name__ == "__main__":
         # parameter configuration
         # TODO: change learning rate to decayed learning rate
         lr = 0.001  # learning rate
-        batchsz = 256  # batch size
+        batchsz = 128  # batch size
         epoch = 20  # training period
         IMAGE_SIZE = 224
 

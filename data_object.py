@@ -112,12 +112,6 @@ def provide_data(cifar_10):
     test_images = test_images_org
     test_labels = cifar_10.test.labels
 
-    # i = 0
-    # while (i < 1000):
-    #     plt.imshow(test_images[i])
-    #     plt.show()
-    #     i += 1
-
     # Create separate objects for train, validation & test.
     train = DATA_OBJECT(train_images, train_labels, num_classes=10, one_hot=True, dtype=np.float32, reshape=False)
     validation = DATA_OBJECT(validation_images, validation_labels, num_classes=10, one_hot=True, dtype=np.float32,
@@ -138,7 +132,6 @@ def preprocess(images_org, IMAGE_SIZE):
     for i in range(images_org.shape[0]):
         images[i] = cv2.resize(images_org[i], dsize=(IMAGE_SIZE, IMAGE_SIZE),
                                interpolation=cv2.INTER_LINEAR)
-
     # i = 0
     # while (i < 1000):
     #     plt.imshow(images[i])
