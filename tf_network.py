@@ -48,7 +48,7 @@ class neuralNetwork:
         '''Define the architecture of the network'''
         # N=(W-F+2P)/S+1
         # Layer 1: Convolutional. Input = 224x224x3. Output = 54x54x96.
-        x = nn.conv2d(input, conv1_W, strides=[1, 4, 4, 1], padding=[[0, 0], [1, 1], [1, 1], [0, 0]]) + conv1_b
+        x = nn.conv2d(input, conv1_W, strides=[1, 4, 4, 1], padding='VALID') + conv1_b
         x = nn.relu(x, name="conv_layer_01/relu")
         # LRN. depth_radius = n/2 = 3, bias = k = 2. Following the paper.
         x = nn.lrn(x, 3, bias=2.0, alpha=1e-4, beta=0.75, name="conv_layer_01/lrn1")
