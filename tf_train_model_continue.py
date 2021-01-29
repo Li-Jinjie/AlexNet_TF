@@ -26,7 +26,7 @@ def train_net(net, batch_size, epochs, train_db, val_db, summary_writer):
     '''
 
     # create session
-    sess.run(tf.compat.v1.global_variables_initializer())
+    # sess.run(tf.compat.v1.global_variables_initializer())
 
     train_samples = train_db.num_samples  # get number of samples
     train_images = train_db.images  # get training images
@@ -182,14 +182,20 @@ if __name__ == "__main__":
         # load cifar-10 dataset
         data = provide_data(cifar_10)
 
-        # create input and output placeholder
-        input = tf.compat.v1.placeholder(dtype=tf.float32,
-                                         shape=[None, IMAGE_SIZE, IMAGE_SIZE, 3],  # revised by me
-                                         name='input')
-        labels = tf.compat.v1.placeholder(dtype=tf.float32,
-                                          shape=[None, 10],
-                                          name='labels')
-        prob = tf.compat.v1.placeholder_with_default(0.0, shape=())
+        # !!!  Restore the model  !!!
+        # step 1
+        saver = tf.train.import_meta_graph('./ckpt_model/ckpt_model_valid_acc=0.2969.ckpt.meta')
+        saver.restore(sess, './ckpt_model/ckpt_model_valid_acc=0.2969.ckpt')
+        # step 2
+        graph = tf.get_default_graph()
+        # input
+        input = graph.get_tensor_by_name('input:0')
+        labels = graph.get_tensor_by_name('labels:0')
+        prob = graph.get_tensor_by_name('prob:0')
+
+        dictionary = './ckpt_model'
+        if os.path.exists(dictionary) == False:
+            os.makedirs(dictionary)
 
         # create instance of neural network
         net = neuralNetwork()
@@ -200,44 +206,22 @@ if __name__ == "__main__":
         # get loss
         cross_entropy = tf.nn.softmax_cross_entropy_with_logits(logits=logits,
                                                                 labels=labels)
-        loss_operation = tf.reduce_mean(cross_entropy, name="loss")
-
-        # decayed learning rate
-        # global_step = tf.Variable(0, trainable=False)
-        # starter_learning_rate = lr
-        # learning_rate = tf.compat.v1.train.exponential_decay(starter_learning_rate,
-        #                                                      global_step,
-        #                                                      100000, 0.96, staircase=True)
-        # # Passing global_step to minimize() will increment it at each step.
-        # learning_step = (
-        #     tf.compat.v1.train.GradientDescentOptimizer(learning_rate)
-        #         .minimize(...my loss..., global_step=global_step)
-        # )
+        loss_operation = graph.get_tensor_by_name('loss_op:0')
 
         # set up the optimizer and optimize the parameters
         optimizer = tf.compat.v1.train.AdamOptimizer(learning_rate=lr)
         training_operation = optimizer.minimize(loss_operation)
 
         # post-processing, get accuracy
-        prediction = tf.argmax(logits, axis=1, name='output')
+        prediction = graph.get_tensor_by_name('output:0')
         correct_prediction = tf.equal(prediction, tf.argmax(labels, axis=1))
-        accuracy_operation = tf.reduce_mean(tf.cast(correct_prediction,
-                                                    tf.float32),
-                                            name="accuracy")
+        accuracy_operation = graph.get_tensor_by_name('accuracy:0')
 
         # create summary scalar
         tf.compat.v1.summary.scalar('Loss', loss_operation)
         tf.compat.v1.summary.scalar('Accuracy', accuracy_operation)
         merge_summary = tf.compat.v1.summary.merge_all()
         summary_writer = tf.compat.v1.summary.FileWriter(log_dir, sess.graph)
-
-        # define saver: maximum 4 latest models are saved.
-        new_saver = tf.train.import_meta_graph('ckpt_model/ckpt_model.ckpt.meta')
-        new_saver.restore(sess, 'ckpt_model/ckpt_model.ckpt')
-
-        dictionary = './ckpt_model'
-        if os.path.exists(dictionary) == False:
-            os.makedirs(dictionary)
 
         # record start training time
         start_training_time = time.time()
