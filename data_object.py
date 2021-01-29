@@ -101,21 +101,15 @@ def provide_data(cifar_10):
     # The ?_labels(? can be train, validation or test) must have the format of [num_samples,] after extraction from data.
     # from batch, channels, height, width to batch, height, width, channels; RGB
     train_images_org = cifar_10.train.images.reshape((-1, 3, 32, 32)).transpose(0, 2, 3, 1)
-    train_images = np.zeros([train_images_org.shape[0], IMAGE_SIZE, IMAGE_SIZE, 3], dtype=np.uint8)
-    for i in range(train_images_org.shape[0]):
-        train_images[i] = cv2.resize(train_images_org[i].astype('uint8'), dsize=(IMAGE_SIZE, IMAGE_SIZE))
+    train_images = train_images_org
     train_labels = cifar_10.train.labels
 
     validation_images_org = cifar_10.validation.images.reshape((-1, 3, 32, 32)).transpose(0, 2, 3, 1)
-    validation_images = np.zeros([validation_images_org.shape[0], IMAGE_SIZE, IMAGE_SIZE, 3], dtype=np.uint8)
-    for i in range(validation_images_org.shape[0]):
-        validation_images[i] = cv2.resize(validation_images_org[i].astype('uint8'), dsize=(IMAGE_SIZE, IMAGE_SIZE))
+    validation_images = validation_images_org
     validation_labels = cifar_10.validation.labels
 
     test_images_org = cifar_10.test.images.reshape((-1, 3, 32, 32)).transpose(0, 2, 3, 1)
-    test_images = np.zeros([test_images_org.shape[0], IMAGE_SIZE, IMAGE_SIZE, 3], dtype=np.uint8)
-    for i in range(test_images_org.shape[0]):
-        test_images[i] = cv2.resize(test_images_org[i].astype('uint8'), dsize=(IMAGE_SIZE, IMAGE_SIZE))
+    test_images = test_images_org
     test_labels = cifar_10.test.labels
 
     # i = 0
@@ -138,9 +132,25 @@ def provide_data(cifar_10):
     return data
 
 
+def preprocess(images_org, IMAGE_SIZE):
+    # resize the image
+    images = np.zeros([images_org.shape[0], IMAGE_SIZE, IMAGE_SIZE, 3], dtype=images_org.dtype)
+    for i in range(images_org.shape[0]):
+        images[i] = cv2.resize(images_org[i], dsize=(IMAGE_SIZE, IMAGE_SIZE),
+                               interpolation=cv2.INTER_LINEAR)
+
+    # i = 0
+    # while (i < 1000):
+    #     plt.imshow(images[i])
+    #     plt.show()
+    #     i += 1
+
+    return images
+
+
 if __name__ == "__main__":
     file = "data/cifar-10-batches-py/data_batch_" + str(1)
-    part_1 = unpickle(file)
+    # part_1 = unpickle(file)
     # data.labels
     # data.data (10000, 3072)  3072 = 32*32*3
     # cifar.image = part_1[data]

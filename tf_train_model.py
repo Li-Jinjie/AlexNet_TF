@@ -3,7 +3,9 @@ import tensorflow as tf
 from tensorflow.compat.v1.graph_util import convert_variables_to_constants
 from tf_network import neuralNetwork
 from data_object import provide_data
+from data_object import preprocess
 import datetime
+from tqdm import tqdm
 import time
 import os
 from cifar_10 import Cifar_10
@@ -36,19 +38,22 @@ def train_net(net, batch_size, epoch, train_db, val_db, summary_writer):
     global_step = 0  # record total step when training
     for i in range(epoch):
         total_loss = 0
-        for offset in range(0, train_samples, batch_size):
+        for offset in tqdm(range(0, train_samples, batch_size)):
             # "offset" is the start position of the index, "end" is the end position of the index.
             end = offset + batch_size
             batch_train_images, batch_train_labels = train_images[
-                offset:end], train_labels[
-                    offset:
-                    end]  # get images and labels according to the batch number
+                                                     offset:end], train_labels[
+                                                                  offset:
+                                                                  end]  # get images and labels according to the batch number
+
+            batch_train_images = preprocess(batch_train_images, IMAGE_SIZE)
+
             _, loss, loss_summary = sess.run(
                 [training_operation, loss_operation, merge_summary],
                 feed_dict={
                     input: batch_train_images,
                     labels: batch_train_labels,
-                    prob: 0.5
+                    prob: 0.5  # the probability to discard elements
                 })
             total_loss += loss
 
@@ -92,23 +97,25 @@ def test_net(net, batch_size, dataset):
     data_labels = dataset.labels
 
     total_accuracy = 0
-    for offset in range(0, num_samples, batch_size):
+    for offset in tqdm(range(0, num_samples, batch_size)):
         # "offset" is the start position of the index, "end" is the end position of the index.
         end = offset + batch_size
         batch_images, batch_labels = data_images[offset:end], data_labels[
-            offset:end]  # get images and labels according to the batch number
+                                                              offset:end]  # get images and labels according to the batch number
+
+        batch_images = preprocess(batch_images, IMAGE_SIZE)
+
         total_accuracy += sess.run(accuracy_operation,
                                    feed_dict={
                                        input: batch_images,
                                        labels: batch_labels,
-                                       prob: 0.0   # the probability to discard elements
+                                       prob: 0.0  # the probability to discard elements
                                    })
 
     return total_accuracy * batch_size / num_samples
 
 
 if __name__ == "__main__":
-
     # create tensorboard environment
     '''
     To use tensorboard,
@@ -122,15 +129,15 @@ if __name__ == "__main__":
 
     # create session
     with tf.Session() as sess:
-
         # create summary environment
         current_time = datetime.datetime.now().strftime(('%Y%m%d-%H%M%S'))
         log_dir = 'logs/' + current_time
 
         # parameter configuration
-        lr = 0.01  # learning rate
+        # TODO: change learning rate to decayed learning rate
+        lr = 0.001  # learning rate
         batchsz = 256  # batch size
-        epoch = 10  # training period
+        epoch = 20  # training period
         IMAGE_SIZE = 224
 
         # prepare training dataset and test dataset
@@ -144,11 +151,11 @@ if __name__ == "__main__":
 
         # create input and output placeholder
         input = tf.compat.v1.placeholder(dtype=tf.float32,
-                               shape=[None, IMAGE_SIZE, IMAGE_SIZE, 3],  # revised by me
-                               name='input')
+                                         shape=[None, IMAGE_SIZE, IMAGE_SIZE, 3],  # revised by me
+                                         name='input')
         labels = tf.compat.v1.placeholder(dtype=tf.float32,
-                                shape=[None, 10],
-                                name='labels')
+                                          shape=[None, 10],
+                                          name='labels')
         prob = tf.placeholder_with_default(0.0, shape=())
 
         # create instance of neural network
@@ -161,6 +168,18 @@ if __name__ == "__main__":
         cross_entropy = tf.nn.softmax_cross_entropy_with_logits(logits=logits,
                                                                 labels=labels)
         loss_operation = tf.reduce_mean(cross_entropy, name="loss")
+
+        # decayed learning rate
+        # global_step = tf.Variable(0, trainable=False)
+        # starter_learning_rate = lr
+        # learning_rate = tf.compat.v1.train.exponential_decay(starter_learning_rate,
+        #                                                      global_step,
+        #                                                      100000, 0.96, staircase=True)
+        # # Passing global_step to minimize() will increment it at each step.
+        # learning_step = (
+        #     tf.compat.v1.train.GradientDescentOptimizer(learning_rate)
+        #         .minimize(...my loss..., global_step=global_step)
+        # )
 
         # set up the optimizer and optimize the parameters
         optimizer = tf.compat.v1.train.AdamOptimizer(learning_rate=lr)
@@ -184,6 +203,7 @@ if __name__ == "__main__":
         # start training
         train_net(net, batchsz, epoch, data.train, data.validation,
                   summary_writer)
+
         print("Training time: {:.3f}s.\n".format(time.time() -
                                                  start_training_time))
 
