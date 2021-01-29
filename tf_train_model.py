@@ -27,7 +27,7 @@ def train_net(net, batch_size, epochs, train_db, val_db, summary_writer):
     # # create session  training from scratch!
     # sess.run(tf.compat.v1.global_variables_initializer())
     # restore session
-    saver.restore(sess, './ckpt_model/ckpt_model_valid_acc=0.2969.ckpt')
+    saver.restore(sess, './ckpt_model/ckpt_model_valid_acc=0.6920.ckpt')
 
     train_samples = train_db.num_samples  # get number of samples
     train_images = train_db.images  # get training images
@@ -79,7 +79,8 @@ def train_net(net, batch_size, epochs, train_db, val_db, summary_writer):
     pbtxt_name = 'frozen_model.pbtxt'
     pbtxt_path = os.path.join(dictionary, pbtxt_name)
     frozen_model_path = os.path.join(dictionary, 'frozen_model.pb')
-    output_node = 'full_layer_03/linear'
+    # output_node = 'full_layer_03/linear'
+    output_node = 'output'
 
     ckpt_path = os.path.join(dictionary, 'ckpt_model_valid_acc=%.4f.ckpt' % validation_accuracy)
     save_path = saver.save(sess, ckpt_path)
@@ -169,9 +170,9 @@ if __name__ == "__main__":
 
         # parameter configuration
         # TODO: change learning rate to decayed learning rate
-        lr = 0.001  # learning rate
+        lr = 0.0001  # learning rate
         batchsz = 128  # batch size
-        epoch = 47  # training period
+        epoch = 20  # training period
         IMAGE_SIZE = 224
 
         # prepare training dataset and test dataset
@@ -233,7 +234,7 @@ if __name__ == "__main__":
         summary_writer = tf.compat.v1.summary.FileWriter(log_dir, sess.graph)
 
         # define saver: maximum 4 latest models are saved.
-        saver = tf.compat.v1.train.Saver(max_to_keep=3)
+        saver = tf.compat.v1.train.Saver(max_to_keep=5)
         dictionary = './ckpt_model'
         if os.path.exists(dictionary) == False:
             os.makedirs(dictionary)
