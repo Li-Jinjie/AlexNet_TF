@@ -150,3 +150,4 @@ archives/
 /model
 /model_frozen
 /ckpt_model
+/data_test

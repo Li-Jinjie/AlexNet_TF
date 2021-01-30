@@ -2,6 +2,9 @@ import numpy as np
 import collections
 from sklearn.utils import shuffle
 import cv2
+import pickle
+from PIL import Image
+import PIL
 import matplotlib.pyplot as plt
 
 
@@ -142,10 +145,31 @@ def preprocess(images_org, IMAGE_SIZE):
 
 
 if __name__ == "__main__":
-    file = "data/cifar-10-batches-py/data_batch_" + str(1)
-    # part_1 = unpickle(file)
-    # data.labels
-    # data.data (10000, 3072)  3072 = 32*32*3
-    # cifar.image = part_1[data]
+    IMAGE_SIZE = 224
+
+    f_path = "./data/cifar-10-batches-py/test_batch"
+    with open(f_path, 'rb') as fo:
+        dict = pickle.load(fo, encoding='bytes')
+        images = np.array(dict[b'data'], dtype=np.uint8)
+        labels = np.array(dict[b'labels'])[:, np.newaxis]
+
+    images = images.reshape((-1, 3, 32, 32)).transpose(0, 2, 3, 1)
+
+    for i in range(images.shape[0]):
+        # images[i] = cv2.resize(images_org[i], dsize=(IMAGE_SIZE, IMAGE_SIZE),
+        #                        interpolation=cv2.INTER_LINEAR)
+        im = Image.fromarray(np.uint8(images[i]))
+        im_large = im.resize((IMAGE_SIZE, IMAGE_SIZE), resample=PIL.Image.BILINEAR)
+        # img_array = np.zeros([IMAGE_SIZE, IMAGE_SIZE, 3], dtype=np.float32)
+        img_array = np.multiply(np.array(im_large), 1.0 / 255.0).astype(np.float32)
+
+        plt.imshow(img_array)
+        plt.show()
+
+        print(img_array.shape)
+
+        # make target
+        outputName = ("./data_test/{}.bin".format(i))
+        img_array.tofile(outputName)
+        print("image {} has completed.".format(outputName))
     pass
-    # cifar_10 = part1
