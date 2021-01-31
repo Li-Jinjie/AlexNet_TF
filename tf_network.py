@@ -12,7 +12,7 @@ class neuralNetwork:
 
         pass
 
-    def Net(self, input, prob=0.5):
+    def Net(self, input, prob=0.0):
         '''
         Define network.
         You can use init_weight() and init_bias() function to init weight matrix,
