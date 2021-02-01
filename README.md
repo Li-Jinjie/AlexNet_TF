@@ -2,7 +2,7 @@
 
  A TensorFlow implementation of AlexNet to classify the CIFAR-10 dataset.
 
-This is the lab 4 of course <人工智能加速器> in BUAA, China.
+This is the lab 4 of the course <人工智能加速器> in BUAA, China.
 
 ### Requirements
 
@@ -22,17 +22,19 @@ Maybe the lower version also works fine :)
 
 5. To test the model, please run **tf_test_model.py** : `python tf_test_model.py`.
 
+6. To use tensorboard, please run `tensorboard --logdir=./logs` in the **terminal** and open the URL in your web browser.
+
    ---
 
-6. If you want to use all 50000 data for training, please uncomment the code in cifar-10.py (44-57 lines).
+7. If you want to use all 50000 data for training, please uncomment the code in cifar-10.py (44-57 lines).
 
-7. If you want to save the ckpt model, please uncomment the code in **tf_train_model.py** (96-97 lines).
+8. If you want to save the ckpt model, please uncomment the code in **tf_train_model.py** (96-97 lines).
 
-8. If you want to continue training from a ckpt model, please comment line 39 and uncomment line 41 in **tf_train_model.py**. You also need to make sure the path in line 41 is correct.
+9. If you want to continue training from a ckpt model, please comment line 39 and uncomment line 41 in **tf_train_model.py**. You also need to make sure the path in line 41 is correct.
 
-9. If you want to freeze the model for model converting, please uncomment the code in **tf_train_model.py** (101-106 lines)
+10. If you want to freeze the model for model converting, please uncomment the code in **tf_train_model.py** (101-106 lines)
 
-### Some tips for training
+### My parameters for training
 
 Stage 1:
 
