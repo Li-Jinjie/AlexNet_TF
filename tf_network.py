@@ -1,3 +1,14 @@
+#!/usr/bin/env python
+# -*- encoding: utf-8 -*-
+'''
+Author: LI Jinjie
+File: tf_network.py
+Date: 2021/1/15 11:21
+LastEditors: LI Jinjie
+LastEditTime: 2021/1/15 11:21
+Description: Define the architecture of the AlexNet.
+'''
+
 import tensorflow as tf
 import tensorflow.nn as nn
 from tensorflow.contrib.layers import flatten

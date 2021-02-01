@@ -145,11 +145,11 @@ archives/
 *.rar
 
 .idea
-/data
+/data/cifar*
 /logs
-/model
+/model/*
 /model_frozen
-/ckpt_model
+/ckpt_model/*
 /data_test
 labels.txt
 bin_data_from_ubuntu

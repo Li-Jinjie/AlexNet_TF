@@ -1,3 +1,14 @@
+#!/usr/bin/env python
+# -*- encoding: utf-8 -*-
+'''
+Author: LI Jinjie
+File: tf_train_model.py
+Date: 2021/1/15 11:25
+LastEditors: LI Jinjie
+LastEditTime: 2021/1/15 11:21
+Description: Train the AlexNet model from scratch.
+'''
+
 import tensorboard
 import tensorflow as tf
 from tensorflow.compat.v1.graph_util import convert_variables_to_constants
@@ -24,10 +35,10 @@ def train_net(net, batch_size, epochs, train_db, val_db, summary_writer):
         - val_db: validation dataset
         - summary_writer: summary object
     '''
-    # # create session  training from scratch!
-    # sess.run(tf.compat.v1.global_variables_initializer())
-    # restore session
-    saver.restore(sess, './ckpt_model/ckpt_model_valid_acc=0.6962.ckpt')
+    # create session  training from scratch!
+    sess.run(tf.compat.v1.global_variables_initializer())
+    # # restore session
+    # saver.restore(sess, './ckpt_model/ckpt_model_valid_acc=0.6962.ckpt')
 
     train_samples = train_db.num_samples  # get number of samples
     train_images = train_db.images  # get training images
@@ -80,28 +91,28 @@ def train_net(net, batch_size, epochs, train_db, val_db, summary_writer):
     pbtxt_path = os.path.join(dictionary, pbtxt_name)
     frozen_model_path = os.path.join(dictionary, 'frozen_model.pb')
     # output_node = 'full_layer_03/linear'
-    output_node = 'output'
+    output_node = 'full_layer_03/linear'
 
-    ckpt_path = os.path.join(dictionary, 'ckpt_model_valid_acc=%.4f.ckpt' % validation_accuracy)
-    save_path = saver.save(sess, ckpt_path)
-
-    # This will only save the graph but the variables will not be saved.
-    # You have to freeze your model first.
-    tf.train.write_graph(graph_or_graph_def=sess.graph_def, logdir=dictionary, name=pbtxt_name, as_text=True)
-    # Freeze graph
-    freeze_graph.freeze_graph(input_graph=pbtxt_path, input_saver='',
-                              input_binary=False, input_checkpoint=ckpt_path, output_node_names=output_node,
-                              restore_op_name='save/restore_all', filename_tensor_name='save/Const:0',
-                              output_graph=frozen_model_path, clear_devices=True, initializer_nodes='')
+    # ckpt_path = os.path.join(dictionary, 'ckpt_model_valid_acc=%.4f.ckpt' % validation_accuracy)
+    # save_path = saver.save(sess, ckpt_path)
+    #
+    # # This will only save the graph but the variables will not be saved.
+    # # You have to freeze your model first.
+    # tf.train.write_graph(graph_or_graph_def=sess.graph_def, logdir=dictionary, name=pbtxt_name, as_text=True)
+    # # Freeze graph
+    # freeze_graph.freeze_graph(input_graph=pbtxt_path, input_saver='',
+    #                           input_binary=False, input_checkpoint=ckpt_path, output_node_names=output_node,
+    #                           restore_op_name='save/restore_all', filename_tensor_name='save/Const:0',
+    #                           output_graph=frozen_model_path, clear_devices=True, initializer_nodes='')
 
     # save the final model
-    # if os.path.exists('./model') == False:
-    #     os.makedirs('./model')
-    # output_graph_def = convert_variables_to_constants(
-    #     sess, sess.graph_def,
-    #     output_node_names=['output', 'loss', 'accuracy'])  # set saving node
-    # with tf.gfile.GFile('model/AlexNet_model.pb', mode='wb') as f:
-    #     f.write(output_graph_def.SerializeToString())
+    if os.path.exists('./model') == False:
+        os.makedirs('./model')
+    output_graph_def = convert_variables_to_constants(
+        sess, sess.graph_def,
+        output_node_names=['output', 'loss_op', 'accuracy'])  # set saving node
+    with tf.gfile.GFile('model/AlexNet_model.pb', mode='wb') as f:
+        f.write(output_graph_def.SerializeToString())
 
     print("=" * 50)
     print()
@@ -141,15 +152,6 @@ def test_net(net, batch_size, dataset):
     return total_accuracy * batch_size / num_samples
 
 
-# def load_pb(path_to_pb):
-#     with tf.io.gfile.GFile(path_to_pb, "rb") as f:
-#         graph_def = tf.compat.v1.GraphDef()
-#         graph_def.ParseFromString(f.read())
-#     with tf.Graph().as_default() as graph:
-#         tf.import_graph_def(graph_def, name='')
-#         return graph
-
-
 if __name__ == "__main__":
     # create tensorboard environment
     '''
@@ -170,9 +172,9 @@ if __name__ == "__main__":
 
         # parameter configuration
         # TODO: change learning rate to decayed learning rate
-        lr = 0.00001  # learning rate
+        lr = 0.001  # learning rate
         batchsz = 128  # batch size
-        epoch = 20  # training period
+        epoch = 30  # training period
         IMAGE_SIZE = 224
 
         # prepare training dataset and test dataset
